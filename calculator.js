@@ -1,6 +1,6 @@
 const numberButtons = document.querySelectorAll("[data-number]");
 const operationButtons = document.querySelectorAll("[data-operation");
-const equalsButton = document.querySelector("[data-number]");
+const equalsButton = document.querySelector("[data-equals]");
 const allclearButton = document.querySelector("[data-all-clear]");
 const deleteButton = document.querySelector("[data-delete]");
 const currentOperand = document.querySelector(".current-operand");
@@ -12,6 +12,7 @@ class Calculator{
         this.previousOperandTextElement = previousOperand;
         this.currentOperand = "0";
         this.previousOperand = "";
+        this.operator = "";
     }
 
     delete(){
@@ -30,18 +31,35 @@ class Calculator{
     allclear(){
         this.currentOperand = "0";
         this.previousOperand = "";
-        this.operaiton = undefined;
+        this.operator = undefined;
     }
 
-    operation(){
-        
+    operation(operator){
+        //if operator is clicked if previousOperand and currentOperand both non blank, then evaluation needs to be done.
+        if(this.previousOperand !== "" && this.currentOperand !== ""){
+            this.compute();
+            this.currentOperand = this.result;
+        }
+        //currentOperand is "" when previousOperand is present, else it's 0. 
+        if(this.currentOperand === ""){
+            //replace the operator with most recently clicked operator
+            this.currentOperand = this.previousOperand.slice(0, this.previousOperand.length - 1);
+        }
+        this.previousOperand = this.currentOperand+operator;
+        this.currentOperand = "";
     }
 
     equals(){
-
+        this.compute();
+        this.currentOperand = this.result;
+        this.previousOperand = "";
     }
 
     appendNumber(number){
+        if(this.currentOperand.length >= 12){
+            alert("Number cannot have more than 12 digits");
+            return
+        }
         //if . is presesnt once, it cannot be again in the same operand
         if(this.currentOperand.includes(".") && number === "."){
             return
@@ -59,7 +77,15 @@ class Calculator{
     }
 
     compute(){
-
+        //because × and ÷ are not valid operator, replace it by * and / during evaluation
+        let symbol = this.previousOperand.slice(this.previousOperand.length-1);
+        if(symbol === "×"){
+            this.previousOperand = this.previousOperand.slice(0, this.previousOperand.length-1)+"*";
+        }
+        else if(symbol === "÷"){
+            this.previousOperand = this.previousOperand.slice(0, this.previousOperand.length-1)+"/";
+        }
+        this.result = eval(this.previousOperand+this.currentOperand);
     }
 
     updateDisplay(){
@@ -85,5 +111,17 @@ allclearButton.addEventListener("click", ()=>{
 
 deleteButton.addEventListener("click", () => {
     calculator.delete();
+    calculator.updateDisplay();
+})
+
+operationButtons.forEach(button => {
+    button.addEventListener("click", ()=>{
+        calculator.operation(button.innerText);
+        calculator.updateDisplay();
+    })
+})
+
+equalsButton.addEventListener("click", ()=>{
+    calculator.equals();
     calculator.updateDisplay();
 })
